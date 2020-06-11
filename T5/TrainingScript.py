@@ -4,14 +4,13 @@ import os
 import torch
 from transformers import (T5Config, T5Tokenizer, T5ForConditionalGeneration, TextDataset, DataCollator, Trainer, TrainingArguments,HfArgumentParser)
 import random
-from typing import Dict, List
+from typing import Dict, List, Optional,NamedTuple
 import nlp
 from dataclasses import dataclass, field
 from tqdm.auto import tqdm, trange
 import re
 import pathlib
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-from typing import Optional,NamedTuple
 import json
 import logging
 from torch.utils.data.dataloader import DataLoader
