@@ -221,7 +221,7 @@ class customTrainer(Trainer):
 
 
 class Custom_T5_Training():
-  def __init__(self, dataset_path,working_folder, maximum_input_length, maximum_output_length, epochs=1,batch=1, logging_step=1000, model_name = 't5-base'):
+  def __init__(self, dataset_path,working_folder, maximum_input_length, maximum_output_length, epochs=1,batch=1, save_step = -1, logging_step=1000, model_name = 't5-base'):
     self.fields = [('input_text', pa.string()),('target_text', pa.string()),('prefix', pa.string())]
     self.dataset_path = dataset_path
     self.working_folder = working_folder
@@ -240,7 +240,7 @@ class Custom_T5_Training():
                         num_train_epochs=self.epochs,   
                         per_device_train_batch_size=                batch, 
                         logging_steps=                              logging_step,   
-                        save_steps=                                 -1,
+                        save_steps=                                 save_step,
                         )
 
   def create_dataset(self):
@@ -411,6 +411,8 @@ class CustomT5Argument:
     wandb_project_name: Optional[str] = field(default='My Project', metadata={"help": "Specify the wandb project name so that you can view your loss at wandb website. If you run the program on the cloud, all you will see is a black terminal. Not fun"})
     t5_model: Optional[str] = field(default='t5-base', metadata = {'help': 'Please specify which t5 pretrained model you want to use. Available options are: t5-small, t5-base, t5-large'})
     batchs: Optional[int] = field(default=1, metadata={'help': 'Please specify how many batches to be splitted per device'})
+    save_step: Optional[int] = field(default=-1, metadata={'help': 'Please specify how often you want the model to be automatically saved during training, the default value is no none'})    
+        
 def main():
     parser = HfArgumentParser((CustomT5Argument))
     args = parser.parse_args_into_dataclasses()[0]
@@ -426,6 +428,7 @@ def main():
     output_size = args.output_size
     model_type = args.t5_model
     batch_ = args.batchs
+    save_step_ = args.save_step
 
     My_T5 = Custom_T5_Training(
           dataset_path= f'{IMPROVEMENT}/accumulatedknowledge.csv' if command == 'Training' else DATAPATH,
@@ -435,7 +438,8 @@ def main():
           model_name= model_type,
           logging_step = steps,
           epochs = epochs_,
-          batch = batch_)
+          batch = batch_,
+          save_step = save_step_)
 
     if command == 'KnowledgeUpdate':
         Step1(My_T5)
