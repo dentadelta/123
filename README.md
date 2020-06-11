@@ -1,4 +1,4 @@
-# To train the model from a commandline, use the following instructions:
+# To train the model from a commandline, follow the following instructions:
 1. Make sure your computer installed all prequisite library such as: transformers, nlp, pyarrows, ipywidgets...
 2. Run the following command from your terminal:
 
