@@ -408,7 +408,7 @@ class CustomT5Argument:
     epochs: Optional[int] = field(default=1, metadata={"help": "Number of training epochs"})
     print_loss: Optional[int] = field(default=10, metadata={"help": "Print loss every X steps"})
     command: Optional[str] = field(default='KnowledgeUpdate', metadata={"help": """Specify what you want to do with the model. Available commands are: KnowledgeUpdate, KnowledgeUpgrade, Training, TrainingFromFile,Confirmation"""})
-    wandb_project_name: Optional[str] = field(default='My Project', metadata={"help": "Specify the wandb project name so that you can view your loss at wandb website. If you run the program on the cloud, all you will see is a black terminal. Not fun. Dont worry the website only track your loss, epoch and step"})
+    wandb_project_name: Optional[str] = field(default='My Project', metadata={"help": "Specify the wandb project name so that you can view your loss at wandb website. If you run the program on the cloud, all you will see is a black terminal. Not fun"})
     t5_model: Optional[str] = field(default='t5-base', metadata = {'help': 'Please specify which t5 pretrained model you want to use. Available options are: t5-small, t5-base, t5-large'})
     batchs: Optional[int] = field(default=1, metadata={'help': 'Please specify how many batches to be splitted per device'})
 def main():
