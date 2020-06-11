@@ -1,5 +1,5 @@
 # To train the model from a commandline, follow the following instructions:
-1. Make sure your computer installed all prequisite library such as: transformers, nlp, pyarrows (version 0.17), ipywidgets...
+1. Make sure your computer installed all prequisite library such as: transformers, nlp, pyarrow (version 0.17), ipywidgets...
 2. Run the following command from your terminal:
 
 ## To teach the model:
