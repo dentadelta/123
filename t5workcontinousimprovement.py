@@ -2,21 +2,42 @@ import pyarrow as pa
 import pandas as pd
 import os
 import torch
-from transformers import (T5Config, T5Tokenizer, T5ForConditionalGeneration, TextDataset, DataCollator, Trainer, TrainingArguments)
-import ipywidgets as widgets
+from transformers import (T5Config, T5Tokenizer, T5ForConditionalGeneration, TextDataset, DataCollator, Trainer, TrainingArguments,HfArgumentParser)
 import random
 from typing import Dict, List
 import nlp
-from dataclasses import dataclass
-from tqdm.auto import tqdm
+from dataclasses import dataclass, field
+from tqdm.auto import tqdm, trange
 import re
 import pathlib
 import numpy as np
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 from ipywidgets import interact, interactive, fixed, interact_manual
-import ipywidgets as widgets
 import textwrap
-import argparse
+from typing import Optional,NamedTuple
+import json
+import logging
+from torch.utils.data.dataloader import DataLoader
+from torch.utils.data.distributed import DistributedSampler
+logger = logging.getLogger(__name__)
+from packaging import version
+try:
+    import wandb
+
+    wandb.ensure_configured()
+    if wandb.api.api_key is None:
+        _has_wandb = False
+        wandb.termwarn("W&B installed but not logged in.  Run `wandb login` or set the WANDB_API_KEY env variable.")
+    else:
+        _has_wandb = False if os.getenv("WANDB_DISABLED") else True
+except ImportError:
+    print('wandb not setup')
+    _has_wandb = False
+
+
+def is_wandb_available():
+    return _has_wandb
+
 @dataclass
 class T2TDataCollator(DataCollator):
     def collate_batch(self, batch: List) -> Dict[str, torch.Tensor]:
@@ -31,6 +52,186 @@ class T2TDataCollator(DataCollator):
             'lm_labels': lm_labels, 
             'decoder_attention_mask': decoder_attention_mask
         }
+
+class TrainOutput(NamedTuple):
+    global_step: int
+    training_loss: float
+        
+class customTrainer(Trainer):
+    def _log(self, logs: Dict[str, float], iterator: Optional[tqdm] = None) -> None:
+        if self.epoch is not None:
+            logs["epoch"] = self.epoch
+        if self.tb_writer:
+            for k, v in logs.items():
+                self.tb_writer.add_scalar(k, v, self.global_step)
+        if is_wandb_available():
+            wandb.log(logs, step=self.global_step)
+        output = json.dumps({**logs, **{"step": self.global_step}})
+        if iterator is not None:
+            iterator.write(output)
+
+      
+    def train(self, model_path: Optional[str] = None):
+        train_dataloader = self.get_train_dataloader()
+        if self.args.max_steps > 0:
+            t_total = self.args.max_steps
+            num_train_epochs = (self.args.max_steps // (len(train_dataloader) // self.args.gradient_accumulation_steps) + 1)
+        else:
+
+            t_total = int(len(train_dataloader) // self.args.gradient_accumulation_steps * self.args.num_train_epochs)
+            num_train_epochs = self.args.num_train_epochs
+
+        optimizer, scheduler = self.get_optimizers(num_training_steps=t_total)
+
+        # Check if saved optimizer or scheduler states exist
+        if (
+            model_path is not None
+            and os.path.isfile(os.path.join(model_path, "optimizer.pt"))
+            and os.path.isfile(os.path.join(model_path, "scheduler.pt"))
+        ):
+            # Load in optimizer and scheduler states
+            optimizer.load_state_dict(
+                torch.load(os.path.join(model_path, "optimizer.pt"), map_location=self.args.device)
+            )
+            scheduler.load_state_dict(torch.load(os.path.join(model_path, "scheduler.pt")))
+
+        model = self.model
+        if self.args.fp16:
+            if not is_apex_available():
+                raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
+            model, optimizer = amp.initialize(model, optimizer, opt_level=self.args.fp16_opt_level)
+
+        # multi-gpu training (should be after apex fp16 initialization)
+        if self.args.n_gpu > 1:
+            model = torch.nn.DataParallel(model)
+
+        # Distributed training (should be after apex fp16 initialization)
+        if self.args.local_rank != -1:
+            model = torch.nn.parallel.DistributedDataParallel(
+                model,
+                device_ids=[self.args.local_rank],
+                output_device=self.args.local_rank,
+                find_unused_parameters=True,
+            )
+
+
+
+        # Train!
+ 
+        total_train_batch_size = (
+                self.args.train_batch_size
+                * self.args.gradient_accumulation_steps
+                * (torch.distributed.get_world_size() if self.args.local_rank != -1 else 1)
+            )
+ 
+        self.global_step = 0
+        self.epoch = 0
+        epochs_trained = 0
+        steps_trained_in_current_epoch = 0
+        # Check if continuing training from a checkpoint
+        if model_path is not None:
+            # set global_step to global_step of last saved checkpoint from model path
+            try:
+                self.global_step = int(model_path.split("-")[-1].split("/")[0])
+                epochs_trained = self.global_step // (len(train_dataloader) // self.args.gradient_accumulation_steps)
+                steps_trained_in_current_epoch = self.global_step % (
+                    len(train_dataloader) // self.args.gradient_accumulation_steps
+                )
+
+            except ValueError:
+                self.global_step = 0
+
+
+        tr_loss = 0.0
+        logging_loss = 0.0
+        model.zero_grad()
+        train_iterator = trange(
+            epochs_trained, int(num_train_epochs), desc="Epoch", disable= self.is_local_master()
+        )
+        for epoch in train_iterator:
+            if isinstance(train_dataloader, DataLoader) and isinstance(train_dataloader.sampler, DistributedSampler):
+                train_dataloader.sampler.set_epoch(epoch)
+
+
+            epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable= True)
+
+            for step, inputs in enumerate(epoch_iterator):
+
+                # Skip past any already trained steps if resuming training
+                if steps_trained_in_current_epoch > 0:
+                    steps_trained_in_current_epoch -= 1
+                    continue
+
+                tr_loss += self._training_step(model, inputs, optimizer)
+
+                if (step + 1) % self.args.gradient_accumulation_steps == 0 or (
+                    # last step in epoch but step is always smaller than gradient_accumulation_steps
+                    len(epoch_iterator) <= self.args.gradient_accumulation_steps
+                    and (step + 1) == len(epoch_iterator)
+                ):
+                    if self.args.fp16:
+                        torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), self.args.max_grad_norm)
+                    else:
+                        torch.nn.utils.clip_grad_norm_(model.parameters(), self.args.max_grad_norm)
+
+
+                    optimizer.step()
+
+                    scheduler.step()
+                    model.zero_grad()
+                    self.global_step += 1
+                    self.epoch = epoch + (step + 1) / len(epoch_iterator)
+
+                    if (self.args.logging_steps > 0 and self.global_step % self.args.logging_steps == 0) or (
+                        self.global_step == 1 and self.args.logging_first_step):
+                        logs: Dict[str, float] = {}
+                        logs["loss"] = (tr_loss - logging_loss) / self.args.logging_steps
+                        # backward compatibility for pytorch schedulers
+                        logs["learning_rate"] = (
+                            scheduler.get_last_lr()[0]
+                            if version.parse(torch.__version__) >= version.parse("1.4")
+                            else scheduler.get_lr()[0]
+                        )
+                        logging_loss = tr_loss
+
+                        self._log(logs)
+
+                        if self.args.evaluate_during_training:
+                            self.evaluate()
+
+                    if self.args.save_steps > 0 and self.global_step % self.args.save_steps == 0:
+                        # In all cases (even distributed/parallel), self.model is always a reference
+                        # to the model we want to save.
+                        if hasattr(model, "module"):
+                            assert model.module is self.model
+                        else:
+                            assert model is self.model
+                        # Save model checkpoint
+                        output_dir = os.path.join(self.args.output_dir, f"{PREFIX_CHECKPOINT_DIR}-{self.global_step}")
+
+                        self.save_model(output_dir)
+
+                        if self.is_world_master():
+                            self._rotate_checkpoints()
+                            
+                        if self.is_world_master():
+                            torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
+                            torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
+
+                if self.args.max_steps > 0 and self.global_step > self.args.max_steps:
+                    epoch_iterator.close()
+                    break
+            if self.args.max_steps > 0 and self.global_step > self.args.max_steps:
+                train_iterator.close()
+                break
+
+        if self.tb_writer:
+            self.tb_writer.close()
+
+
+        return TrainOutput(self.global_step, tr_loss / self.global_step)
+
+
 
 class Custom_T5_Training():
   def __init__(self, dataset_path,working_folder, maximum_input_length, maximum_output_length, epochs=1, logging_step=1000, model_name = 't5-base'):
@@ -54,8 +255,6 @@ class Custom_T5_Training():
                         logging_steps=                              logging_step,   
                         save_steps=                                 -1,
                         )
-
-    self.progress = widgets.FloatProgress(value=0.1, min=0.0, max=1.0, bar_style = 'info')
 
 
   def create_dataset(self):
@@ -92,23 +291,14 @@ class Custom_T5_Training():
       self.model.save_pretrained(self.working_folder)
 
   def train_model(self):
-    trainer = Trainer(
+    trainer = customTrainer(
                         model= self.model,
                         args=self.training_args,
                         data_collator=self.data_collator,
                         train_dataset=self.train_dataset,
-                        prediction_loss_only=True
+                        prediction_loss_only=False,
                       )
-    self.progress.value = 0.4
-    p_start, p_end = 0.4, 1.
-    def progressify(f):
-      def inner(*args, **kwargs):
-        if trainer.epoch is not None:
-          self.progress.value = p_start + trainer.epoch / self.epochs * (p_end - p_start)
-          return f(*args, **kwargs)
-      return inner
     try:
-      trainer._training_step = progressify(trainer._training_step)
       trainer.train()
     
     except KeyboardInterrupt:
@@ -240,37 +430,38 @@ def Step5(My_T5):
       da.at[j,'target_text'] = '.'
     da = da.dropna()
     print(da)
-    
-    # TO DO:
 
-   
-
+@dataclass
+class CustomT5Argument:
+    train_data_file: Optional[str] = field(default=None, metadata={"help": "The input training data file (a text file)."})
+    workingfolder: Optional[str] = field(default=None, metadata={"help": "Location where the model will be saved."})
+    training_library: Optional[str] = field(default=None, metadata={"help": "The training library where good examples are saved"})
+    input_size: Optional[int] = field(default=150, metadata={"help": "An optional input length, the default value is 150"})
+    output_size: Optional[int] = field(default=50, metadata={"help": "An optional output length, the default value is 50"})
+    epochs: Optional[int] = field(default=1, metadata={"help": "Number of training epochs"})
+    print_loss: Optional[int] = field(default=10, metadata={"help": "Print loss every X steps"})
+    command: Optional[str] = field(default='KnowledgeUpdate', metadata={"help": "Specify what you want to do with the model"})
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('traininglibrary', metavar='T', type=str, nargs=1,help='specify improvement file path')
-    parser.add_argument('workingfolder', metavar='W', type=str, nargs=1,help='specify training file path')   
-    parser.add_argument('filepath', metavar='F', type=str, nargs=1,help='specify new file path')
-   
-    parser.add_argument('steps', metavar='S',type=int,nargs=1, help="Specify training step")
-    parser.add_argument('epochs', metavar='E',type=int,nargs=1, help="Specify training epoch")
-    parser.add_argument('command', metavar='N', type=str, nargs=1,help='Send in your command')
-
-    args = parser.parse_args()
+    os.environ["WANDB_PROJECT"] = "My Project"
+    parser = HfArgumentParser((CustomT5Argument))
+    args = parser.parse_args_into_dataclasses()[0]
     
-    IMPROVEMENT = args.traininglibrary[0]
-    WORKING_FOLDER = args.workingfolder[0]
-    DATAPATH = args.filepath[0]
-    command = args.command[0]
-    epochs = args.epochs[0]
-    steps = args.steps[0]
+    IMPROVEMENT = args.training_library
+    WORKING_FOLDER = args.workingfolder
+    DATAPATH = args.train_data_file
+    command = args.command
+    epochs = args.epochs
+    steps = args.print_loss
+    input_length = args.input_size
+    output_size = args.output_size
 
     My_T5 = Custom_T5_Training(
           dataset_path= f'{IMPROVEMENT}/accumulatedknowledge.csv' if command == 'Training' else DATAPATH,
           working_folder= WORKING_FOLDER,
-          maximum_input_length=250,
-          maximum_output_length= 100,
+          maximum_input_length=input_length,
+          maximum_output_length= output_size,
           model_name= 't5-base',
           logging_step = steps,
           epochs = epochs)
@@ -299,8 +490,3 @@ def main():
         
 if __name__ == "__main__":
     main()
-
-
-
-
-
