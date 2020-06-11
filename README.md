@@ -11,7 +11,7 @@ python3 /content/t5workcontinousimprovement.py /content/TrainingLibary /content/
 ## To train the model after you teach it
 python3 /content/t5workcontinousimprovement.py /content/TrainingLibary /content/SavedModel/ /content/training_data.csv 5 4 Training
 
-## To confirm what has it learned
+## To confirm what it has learned
 python3 /content/t5workcontinousimprovement.py /content/TrainingLibary /content/SavedModel/ /content/training_data.csv 5 4 Confirmation
 
 ### Note:
@@ -21,6 +21,8 @@ python3 /content/t5workcontinousimprovement.py /content/TrainingLibary /content/
 - /content/training_data.csv: is the file path to new example you wish your computer to learn
 - 5 is how often you want to see the loss print output
 - 4 is the number of training epochs
+
+* You need a GPU computer
 
 
 
