@@ -10,10 +10,7 @@ from dataclasses import dataclass, field
 from tqdm.auto import tqdm, trange
 import re
 import pathlib
-import numpy as np
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-from ipywidgets import interact, interactive, fixed, interact_manual
-import textwrap
 from typing import Optional,NamedTuple
 import json
 import logging
@@ -146,19 +143,14 @@ class customTrainer(Trainer):
         for epoch in train_iterator:
             if isinstance(train_dataloader, DataLoader) and isinstance(train_dataloader.sampler, DistributedSampler):
                 train_dataloader.sampler.set_epoch(epoch)
-
-
             epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable= True)
-
             for step, inputs in enumerate(epoch_iterator):
 
                 # Skip past any already trained steps if resuming training
                 if steps_trained_in_current_epoch > 0:
                     steps_trained_in_current_epoch -= 1
                     continue
-
                 tr_loss += self._training_step(model, inputs, optimizer)
-
                 if (step + 1) % self.args.gradient_accumulation_steps == 0 or (
                     # last step in epoch but step is always smaller than gradient_accumulation_steps
                     len(epoch_iterator) <= self.args.gradient_accumulation_steps
@@ -168,10 +160,7 @@ class customTrainer(Trainer):
                         torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), self.args.max_grad_norm)
                     else:
                         torch.nn.utils.clip_grad_norm_(model.parameters(), self.args.max_grad_norm)
-
-
                     optimizer.step()
-
                     scheduler.step()
                     model.zero_grad()
                     self.global_step += 1
@@ -187,7 +176,6 @@ class customTrainer(Trainer):
                             else scheduler.get_lr()[0]
                         )
                         logging_loss = tr_loss
-
                         self._log(logs)
                         if self.args.evaluate_during_training:
                             self.evaluate()
@@ -201,29 +189,21 @@ class customTrainer(Trainer):
                             assert model is self.model
                         # Save model checkpoint
                         output_dir = os.path.join(self.args.output_dir, f"{PREFIX_CHECKPOINT_DIR}-{self.global_step}")
-
                         self.save_model(output_dir)
-
                         if self.is_world_master():
-                            self._rotate_checkpoints()
-                            
+                            self._rotate_checkpoints()  
                         if self.is_world_master():
                             torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
                             torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
-
                 if self.args.max_steps > 0 and self.global_step > self.args.max_steps:
                     epoch_iterator.close()
                     break
             if self.args.max_steps > 0 and self.global_step > self.args.max_steps:
                 train_iterator.close()
                 break
-
         if self.tb_writer:
             self.tb_writer.close()
-
         return TrainOutput(self.global_step, tr_loss / self.global_step)
-
-
 class Custom_T5_Training():
   def __init__(self, dataset_path,working_folder, maximum_input_length, maximum_output_length, epochs=1, logging_step=1000, model_name = 't5-base'):
     self.fields = [('input_text', pa.string()),('target_text', pa.string()),('prefix', pa.string())]
@@ -246,14 +226,13 @@ class Custom_T5_Training():
                         logging_steps=                              logging_step,   
                         save_steps=                                 -1,
                         )
-
   def create_dataset(self):
     self.tokenizer = T5Tokenizer.from_pretrained(self.model_name)
     df = pd.read_csv(self.dataset_path)
     train_dataset = self.createdatafromcsv(df)
     self.train_dataset = train_dataset
     self.tokenizer.save_pretrained(self.working_folder)
-
+    
   def add_eos_to_examples(self,example):
     example['input_text'] = '<{}>: <{}> </s>'.format(example['prefix'] , example['input_text'] )
     example['target_text'] = '"<{}> </s>"'.format(example['target_text'])
@@ -406,8 +385,8 @@ class CustomT5Argument:
     train_data_file: Optional[str] = field(default=None, metadata={"help": "The input training data file (a text file)."})
     workingfolder: Optional[str] = field(default=None, metadata={"help": "Location where the model will be saved."})
     training_library: Optional[str] = field(default=None, metadata={"help": "The training library where good examples are saved"})
-    input_size: Optional[int] = field(default=150, metadata={"help": "An optional input length, the default value is 150"})
-    output_size: Optional[int] = field(default=50, metadata={"help": "An optional output length, the default value is 50"})
+    input_size: Optional[int] = field(default=150, metadata={"help": "maximum input length, the default value is 150"})
+    output_size: Optional[int] = field(default=50, metadata={"help": "maximum output length, the default value is 50"})
     epochs: Optional[int] = field(default=1, metadata={"help": "Number of training epochs"})
     print_loss: Optional[int] = field(default=10, metadata={"help": "Print loss every X steps"})
     command: Optional[str] = field(default='KnowledgeUpdate', metadata={"help": "Specify what you want to do with the model"})
