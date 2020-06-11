@@ -408,9 +408,10 @@ class CustomT5Argument:
     output_size: Optional[int] = field(default=50, metadata={"help": "maximum output length, the default value is 50"})
     epochs: Optional[int] = field(default=1, metadata={"help": "Number of training epochs"})
     print_loss: Optional[int] = field(default=10, metadata={"help": "Print loss every X steps"})
-    command: Optional[str] = field(default='KnowledgeUpdate', metadata={"help": """Specify what you want to do with the model. Possible commands are: KnowledgeUpdate, KnowledgeUpgrade, Training, TrainingFromFile,Confirmation"""})
+    command: Optional[str] = field(default='KnowledgeUpdate', metadata={"help": """Specify what you want to do with the model. Available commands are: KnowledgeUpdate, KnowledgeUpgrade, Training, TrainingFromFile,Confirmation"""})
     wandb_project_name: Optional[str] = field(default='My Project', metadata={"help": "Specify the wandb project name so that you can view your loss at wandb website. If you run the program on the cloud, all you will see is a black terminal. Not fun. Dont worry the website only track your loss, epoch and step"})
-
+    t5_model: Optional[str] = field(default='t5-base', metadata = {'help': 'Please specify which t5 pretrained model you want to use. Available options are: t5-small, t5-base, t5-large'})
+    
 def main():
     parser = HfArgumentParser((CustomT5Argument))
     args = parser.parse_args_into_dataclasses()[0]
@@ -424,13 +425,14 @@ def main():
     steps = args.print_loss
     input_length = args.input_size
     output_size = args.output_size
+    model_type = args.t5_model
 
     My_T5 = Custom_T5_Training(
           dataset_path= f'{IMPROVEMENT}/accumulatedknowledge.csv' if command == 'Training' else DATAPATH,
           working_folder= WORKING_FOLDER,
           maximum_input_length=input_length,
           maximum_output_length= output_size,
-          model_name= 't5-base',
+          model_name= model_type,
           logging_step = steps,
           epochs = epochs)
 
