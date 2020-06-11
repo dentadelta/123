@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 from packaging import version
 try:
     import wandb
-
     wandb.ensure_configured()
     if wandb.api.api_key is None:
         _has_wandb = False
@@ -33,7 +32,6 @@ try:
 except ImportError:
     print('wandb not setup')
     _has_wandb = False
-
 
 def is_wandb_available():
     return _has_wandb
@@ -56,7 +54,8 @@ class T2TDataCollator(DataCollator):
 class TrainOutput(NamedTuple):
     global_step: int
     training_loss: float
-        
+
+#Subclassed from Huggingface to stop it from spamming the terminal with useless information        
 class customTrainer(Trainer):
     def _log(self, logs: Dict[str, float], iterator: Optional[tqdm] = None) -> None:
         if self.epoch is not None:
@@ -113,11 +112,7 @@ class customTrainer(Trainer):
                 output_device=self.args.local_rank,
                 find_unused_parameters=True,
             )
-
-
-
         # Train!
- 
         total_train_batch_size = (
                 self.args.train_batch_size
                 * self.args.gradient_accumulation_steps
@@ -181,7 +176,6 @@ class customTrainer(Trainer):
                     model.zero_grad()
                     self.global_step += 1
                     self.epoch = epoch + (step + 1) / len(epoch_iterator)
-
                     if (self.args.logging_steps > 0 and self.global_step % self.args.logging_steps == 0) or (
                         self.global_step == 1 and self.args.logging_first_step):
                         logs: Dict[str, float] = {}
@@ -195,7 +189,6 @@ class customTrainer(Trainer):
                         logging_loss = tr_loss
 
                         self._log(logs)
-
                         if self.args.evaluate_during_training:
                             self.evaluate()
 
@@ -228,9 +221,7 @@ class customTrainer(Trainer):
         if self.tb_writer:
             self.tb_writer.close()
 
-
         return TrainOutput(self.global_step, tr_loss / self.global_step)
-
 
 
 class Custom_T5_Training():
@@ -256,7 +247,6 @@ class Custom_T5_Training():
                         save_steps=                                 -1,
                         )
 
-
   def create_dataset(self):
     self.tokenizer = T5Tokenizer.from_pretrained(self.model_name)
     df = pd.read_csv(self.dataset_path)
@@ -270,8 +260,8 @@ class Custom_T5_Training():
     return example
 
   def convert_to_features(self,example_batch):
-    input_encodings = self.tokenizer.batch_encode_plus(example_batch['input_text'], pad_to_max_length=True, max_length=self.maximum_input_length)     ########## Specify the maximum input lengths (context + question)
-    target_encodings = self.tokenizer.batch_encode_plus(example_batch['target_text'], pad_to_max_length=True, max_length=self.maximum_output_length)     ########## Specify the maximum output length
+    input_encodings = self.tokenizer.batch_encode_plus(example_batch['input_text'], pad_to_max_length=True, max_length=self.maximum_input_length)     
+    target_encodings = self.tokenizer.batch_encode_plus(example_batch['target_text'], pad_to_max_length=True, max_length=self.maximum_output_length)     
     encodings = {
         'input_ids': input_encodings['input_ids'], 
         'attention_mask': input_encodings['attention_mask'],
@@ -344,19 +334,15 @@ class Custom_T5_Training():
     input_texts = []
     for ref, pred in zip(self.train_dataset, answers):
       pred = pred[4:-1]
-      predictions.append(pred)
-        
+      predictions.append(pred)  
       input_ = self.tokenizer.decode(ref['input_ids'])
       input_ = ''.join(input_)
       input_ = re.sub('[!@#$*-]', '', input_)
       input_ = input_.lstrip().title()
-
       start_index = input_.index('>:')
       prefix = input_[:start_index]
       input_ = input_[start_index + 6:-1]
-
       input_texts.append(input_)
-
     results = {'prefix': prefix[2:], 'input_text': input_texts, 'target_text': predictions}
     ds = pd.DataFrame(results)
     return ds
@@ -414,22 +400,6 @@ def Step4(My_T5):
     with open('ConfirmingKnowledgeUpdate.txt','w') as file:
       file.write(text)
       file.close()
-    
-def Step5(My_T5):
-    da = pd.DataFrame(columns=['prefix','input_text', 'target_text'])
-    with open('test_file.txt') as file:
-      j = 0
-      textline = file.readlines()
-      for f in textline:
-        print(f)
-        if f.find('prefix') > -1:
-          da.at[j,'prefix'] = f[len('prefix:'):]
-        if f.find('input_text') > -1:
-          da.at[j,'input_text'] = f[len('input_text:'):]        
-          j += 1
-      da.at[j,'target_text'] = '.'
-    da = da.dropna()
-    print(da)
 
 @dataclass
 class CustomT5Argument:
@@ -441,13 +411,13 @@ class CustomT5Argument:
     epochs: Optional[int] = field(default=1, metadata={"help": "Number of training epochs"})
     print_loss: Optional[int] = field(default=10, metadata={"help": "Print loss every X steps"})
     command: Optional[str] = field(default='KnowledgeUpdate', metadata={"help": "Specify what you want to do with the model"})
-
+    wandb_project_name: Optional[str] = field(default='My Project', metadata={"help": "Specify the wandb project name so that you can view your loss at wandb website. If you run the program on the cloud, all you will see is a black terminal. Not fun. Dont worry the website only track your loss, epoch and step"})
 
 def main():
-    os.environ["WANDB_PROJECT"] = "My Project"
     parser = HfArgumentParser((CustomT5Argument))
     args = parser.parse_args_into_dataclasses()[0]
-    
+
+    os.environ["WANDB_PROJECT"] = args.wandb_project_name
     IMPROVEMENT = args.training_library
     WORKING_FOLDER = args.workingfolder
     DATAPATH = args.train_data_file
@@ -466,9 +436,6 @@ def main():
           logging_step = steps,
           epochs = epochs)
 
-    print(command)
-        
-
     if command == 'KnowledgeUpdate':
         Step1(My_T5)
         with open('test_file.txt','w') as file:
@@ -485,8 +452,6 @@ def main():
     if command == 'Confirmation':
         Step4(My_T5)
     
-    if command == 'Test':
-        Step5(My_T5)
         
 if __name__ == "__main__":
     main()
