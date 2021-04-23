@@ -1,0 +1,6 @@
+pip install --proxy=XXXXXX --trusted-host pypi.org --trusted-host files.pythonhosted.org YYYYY
+
+
+where: 
+      XXXXX is your proxy address (Go to proxy settings, then copy the script address and then paste it on your web brower to find out your proxy address)
+      YYYYY is the python library package you want to install from pypi.org
