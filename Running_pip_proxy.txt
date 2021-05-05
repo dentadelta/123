@@ -1,6 +1,48 @@
+#1.0 Install pip package
 pip install --proxy=XXXXXX --trusted-host pypi.org --trusted-host files.pythonhosted.org YYYYY
 
 
 where: 
       XXXXX is your proxy address (Go to proxy settings, then copy the script address and then paste it on your web brower to find out your proxy address)
       YYYYY is the python library package you want to install from pypi.org
+
+
+
+#2.0 Load pretrained model within Python:
+
+import ipywidgets as widgets
+from six.moves import urllib
+
+username = widgets.Password(
+    value='username',
+    placeholder=' ',
+    description= 'UserName:',
+    disabled=False
+)
+
+password = widgets.Password(
+    value='password',
+    placeholder=' ',
+    description='Password:',
+    disabled=False
+)
+
+proxy = widgets.Password(
+    value='Proxy',
+    placeholder=' ',
+    description='Proxy:',
+    disabled=False
+)
+
+# Run the below in a separate cell to enter username:
+username
+
+# Run the below in a separate cell to enter password:
+password
+
+# Run the below in a separate cell to enter proxy:
+proxy
+
+proxy = urllib.request.ProxyHandler({'https':f'{username.value}:{password.value}@{proxy.value}'})
+opener = urllib.request.build_opener(proxy)
+urllib.request.install_opener(opener)
