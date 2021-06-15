@@ -1,0 +1,43 @@
+%%capture
+!pip install Flask
+!pip install elasticsearch
+!pip install flask-ngrok
+
+from google.colab.output import eval_js
+from flask import Flask, render_template, request
+from flask_ngrok import run_with_ngrok
+from elasticsearch import Elasticsearch
+import urllib.request
+app = Flask(__name__)
+run_with_ngrok(app)
+import pandas as pd
+import random
+
+
+df = pd.read_csv('/content/ContractTimeFrame Register.csv')   #this table contains the following columns: Clause, Description, Time Frame
+
+app = Flask(__name__)
+@app.route('/')
+def home():
+  number_of_rows = len(df)
+  randIntNumer = random.randint(0,number_of_rows)
+  applicable_clause = df.at[randIntNumer,'Clause']
+  applicable_description = df.at[randIntNumer,'Description']
+  required_timeFrame = df.at[randIntNumer,'Time Frame']
+  return f'''<!DOCTYPE html>
+<html>
+<head>
+<title>Page Title</title>
+</head>
+<body>
+
+<h1>Clause {applicable_clause}</h1>
+<h3>Description:</h3>
+<p>{applicable_description}</p>
+<h3>Required Timeframe:</h3>
+<p>{required_timeFrame}</p>
+</body>
+</html>'''
+
+print(eval_js("google.colab.kernel.proxyPort(5000)"))
+app.run()
