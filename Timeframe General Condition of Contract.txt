@@ -1,0 +1,73 @@
+Clause	Description	Time Frame
+3.2.2	CLT remain establish	10 business days after the date of Final Certificate
+3.2.2	Replace CLT member	24 hours notice
+4.2	Copy of prestart minute	5 business days
+4.2	Notify to the Administrator about error in prestart minute	2 business days
+4.2	Amend the prestart minute	2 business days
+4.3	Site conference	item 10A
+4.3	Site conferece minute	5 business days
+4.3	Notify to the Administrator about error in site conference	2 business days
+5.2	Security in accordance with item 11A	10 business days aafter the Date of Acceptance of Tender
+5.9	Principal release security money	10 business days after the Final Certificate
+6.2	Principal prepare formal instrument of agreement x3	20 business days after the Date of Acceptance of Tender
+6.2	Contractor sign off the formal instrument of agreement x3	10  business days
+6.2	Principal sign off the formal instrument of agreement	10 business days
+7.4	Give notice under Pament Act to other parties	24 hours
+8.2	Notify discrepancies within Contract Documents	5 business days
+8.2	Administrator direct the intepretation of discrepancies	5 business days
+9.2.2	Administrator approve subcontractors	10 business days
+10.5	Contractor providing a notice to terminate a nominated subcontractor	1 business day
+10.5	Administrator nominate a nominated subcontractor	3 business days
+12.2	Contractor gives written notice to a latent condition	1 business day
+14.6.2	Contractor notify the Australian Building and Construction Commision and the Principal of any alleged breaches of Queensland Code	Within 24 hours of becoming aware of the alleged breach
+14.8	Contractor prepare and submit statement of intent, indicating how the principles of Charter shall be addressed	28 days of Letter of Acceptance
+15.3.2	Provide to the Principal all notices and correspondence of whatsoever nature concerning the WHS Legislation	Within 24 hours of the dispacth and/or receipt by the Contractor
+15.3.3	Contractor notify the Administrator about Notifiable Incident	within 12 hours
+15.3.3	Contractor provide a copy of notification to the regulator for work health and safety to the Adminsitrator as requested	within 12 hours
+15.5.2	Contractor provide an amended Traffic Management Plan to the Administrator	within 5 business days
+15.6.3	Initial meeting with the local community to be affected by the Work Under the Contract	within 20 Business Days after the Date of Acceptantance of Tender
+16.1	Care for the work under the contract	4.00pm on the Date of Practical Completion
+16.1	Care the the oustanding work and item to be removed from the site	All time, even after 4.00pm on the date of Practical Completion
+27	Timeframe for the Principal to give a letter for possession of site	Item 24A
+27.2.4	Contractor gives Notice of Entry to private property	at least 15 Business Days prior to the date the Contractor proposes to temporary access and occupy private land joining site
+27.3	delivery of materials to and work on site	after the Letter for possesion of site
+27.7.2	Notification of newly identified Public Utility Plant	within 1 Business Day
+27.8.1	Erect project signs	within 20 Business Days after the Date of Acceptantance of Tender
+27.8.1	Remove project signs 	within 10 Business Days after the Date of Practical Completion
+29.2.2	Contractor key personnel 'handover'	at least 10 Business Days
+29.3	Submit to DESBT through TPAS a completed training compliance plan	10 Business Days
+29.3	Submit a practical completion report through TPAS	15 Business Days after Date of Practical Completion
+29.7	Provide a written notice the date the Principal Suplied Material is required	at least 15 Business Days
+29.7	Contractor inspect the Principal Supplied Material	within 3 Business Days
+29.7	Notify the Administrator of any damage to or loss of the Principal Supplied Material	within 1 Business Day after inspection
+29.7	Replace Principal Supplied Material damage caused by Contractor	within 3 Business Days
+30.6	Rectify defective material work	within 5 business days
+33.1	The Contractor notify that the direction to carry out the work is a variation	within 10 Business Days
+33.2.2	Weekly report	12.pm Tuesday
+35.1	Notice to the Administrator the proposed commence date	5 business days
+35.1	Contractor commences working on site	Within 10 Business Days after the letter for possession of site
+35.5	Notice of possible delay and the causes	10 Business Days
+35.5	Extension of time due to Industrial Matters or Inclement Weather, or any type of delays	20 Business Days
+35.5	Written notice to the number of days claimed	20 Business Days
+35.5	Administrator providing reponses to the Extension of Time	20 Business Days
+37	Defective Liability Period	90 days or the period stated in Item 37A or 39A
+37	Administrator direct the Contractor to rectify work	At any time prior to 10 Business Days ater the expiration of the Defects Liability Period
+38	The Contractor to remove temporary work or constructional plant	within 10 Business Days after the Date of Practical Completion
+40.2	Contractor advice the effect on carrying out the variation work (cost, time, revised date for pactical completion)	5 business days
+40.3	Administrator give Contractor on whether to proceed with the variation	5 business days
+42.1.1	Time for the Contractor to submit a payment claim	Item 41A
+42.1.1	Administrator issues a payment certicate	10 Business Days after the receipt of a payment claim
+42.1.2	Contractor issues a tax invoice	2 Business Days after receiving a payment certicate
+42.1.3	Principal to pay the invoice	20 Business Days
+42.5	Contractor gives notice that Practical Completion will be reached	10 Business Day
+42.5	Contractor to handover all investigation reports	Within 2 months
+42.5	Administrator issues a Certificate of Practical Completion	Within 10 Business Days after requested by the Contractor
+42.6	Contractor to lodge a final payment claim	Within 20 Business Day after the expiration of the Defects Liability Period
+42.8	Serve a notice of dispute	No later than 10 Business Days after the Final Certificate
+43A	Contractor provides a copy of any notice (other than payment Claim or payment schedule) under the Payment Act to the Administrator and the Principal	within on Business Day after a notice is given or received by the Contractor
+44.8	Principal to show cause 	5 clear Business Days after receiving a notice from the Contractor
+44.9	Contractor lifts suspension after the Principal remedied a breach	within 20 Business Days after the date of suspension
+46.1	Contractor provide a prescribed notice to the Administrator after it first awares of a breach of Contract	within 20 Business Days
+46.2	Contractor give a dispute notice to the Principal regarding the Administration's direction	within 20 Business Days
+47.2	Confer to attempt to resolve the dispute	within 5 Business Days after receiving a dispute
+47.3.1	Request a Resolution Advisor be involved	within 10 Business Days after serving a dispute
