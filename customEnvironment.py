@@ -1,6 +1,7 @@
 
 from typing import Dict
 from stable_baselines3.common.env_checker import check_env
+from stable_baselines3 import PPO
 from shapely.geometry import box
 from imageprocessing import *
 import gym
@@ -18,17 +19,18 @@ class PasteImage(pydantic.BaseModel):
     imagepath: str
 
 class ImageEnv(gym.Env):
-    def __init__(self,observation_shape,elements):
+    metadata = {'render.modes': ['human', 'console']}
+    def __init__(self,elements):
         super(ImageEnv, self).__init__()
-        print('game started:', len(elements))
-        self.observation_shape = observation_shape
+        print('Maximum rewards', len(elements))
+        self.observation_shape = (468,332)
         self.elements = elements
         self.observation_space = gym.spaces.Dict({
-            'state':gym.spaces.Box(low=0, high=255, shape=self.observation_shape, dtype=np.uint8),
-            'next_element_height':gym.spaces.Discrete(observation_shape[1]),
-            'next_element_width':gym.spaces.Discrete(observation_shape[0]),
+            'state':gym.spaces.Box(low=0, high=255, shape=(len(elements),4), dtype=np.uint8),
+            'next_element_height':gym.spaces.Discrete(468),
+            'next_element_width':gym.spaces.Discrete(332),
         })
-        self.action_space = gym.spaces.Tuple((gym.spaces.Discrete(observation_shape[1]),gym.spaces.Discrete(observation_shape[0])))
+        self.action_space = gym.spaces.MultiDiscrete([332,468])
         self.current_step = 0
         self.reset()
 
@@ -37,6 +39,7 @@ class ImageEnv(gym.Env):
         element = self.next_element
         overlapped = self.isoverlapped(action,element)
         outofscreen = self.isoutofscreen(action,element)
+        self.render(action,element,overlapped,outofscreen)
         if not overlapped:
             if not outofscreen:
                 self.rewards += 1
@@ -44,43 +47,54 @@ class ImageEnv(gym.Env):
                 self.rewards += 0
         else:
             done = True
-            print('overlapped, game over, see final score below:')
-        state = self.render(action,element,overlapped,outofscreen)
 
         if self.current_step == len(self.elements)-1:
             done = True
+            observation = {'state':self.previous_element,'next_element_height':0,'next_element_width':0}
+            info = {'rewards':self.rewards,'done':done, 'next_width':0,'next_height':0}
+            return observation, self.rewards, done, info
         
         else:
             self.next_element = self.elements[self.current_step+1]
-            observation = {'state':state,'next_element_height':self.next_element.height,'next_element_width':self.next_element.width}
+            observation = {'state':self.previous_element,'next_element_height':self.next_element.height,'next_element_width':self.next_element.width}
             self.current_step += 1
 
         info = {'rewards':self.rewards,'done':done, 'next_width':self.next_element.width,'next_height':self.next_element.height}
         return observation, self.rewards, done,info
 
-    def render(self,action,element,overlapped,outofscreen):
-        a4paper = Image.fromarray(self.a4paper)
-        a4paper.paste(element,(action[0],action[1]))
-        drawingbox = (action[0],action[1],action[0]+element.width,action[1]+element.height)
-        draw = ImageDraw.Draw(a4paper)
-        if not overlapped and not outofscreen:
-            draw.rectangle(drawingbox, outline='blue')
-        elif outofscreen:
-            draw.rectangle(drawingbox, outline='red')
-        elif overlapped:
-            draw.rectangle(drawingbox, fill='red',width=10)
-        self.a4paper = np.array(a4paper)
-        return self.a4paper 
+    def render(self,action,element,overlapped,outofscreen, mode='console'):
+        if mode == 'human':
+            self.a4paper.paste(element,(action[0],action[1]))
+            drawingbox = (action[0],action[1],action[0]+element.width,action[1]+element.height)
+            draw = ImageDraw.Draw(self.a4paper)
+            if not overlapped and not outofscreen:
+                draw.rectangle(drawingbox, outline='blue')
+            elif outofscreen:
+                draw.rectangle(drawingbox, outline='red')
+            elif overlapped:
+                draw.rectangle(drawingbox, fill='red',width=1)
+            self.render_result = self.a4paper
+
+        elif mode == 'console':
+            rendered_result = Image.new('RGB', (332,468), color='white')
+            draw = ImageDraw.Draw(rendered_result)
+            if len(self.previous_element) > 1:
+                for bx in self.previous_element[1:]:
+                    draw.rectangle((bx[0],bx[1],bx[2],bx[3]), outline='blue')
+            self.render_result = rendered_result
 
     def reset(self):
         image = Image.new('RGB', (self.observation_shape[1],self.observation_shape[0]), color='black')
-        self.a4paper = np.array(image)
+        self.a4paper = image
+        self.what_machine_see = None
         self.rewards = 0
-        self.previous_element = []
+        self.previous_element = np.array([[0,0,self.observation_shape[1],self.observation_shape[0]]])
+        for i in range(len(self.elements)-1):
+            self.previous_element = np.concatenate((self.previous_element,np.array([[0,0,0,0]])))
         self.previous_action = None
         self.current_step = 0
         self.next_element = self.elements[0]
-        observation = {'state':self.a4paper,'next_element_height':self.next_element.height,'next_element_width':self.next_element.width}
+        observation = {'state':self.previous_element,'next_element_height':self.next_element.height,'next_element_width':self.next_element.width}
         return observation
 
     def close(self):
@@ -90,12 +104,12 @@ class ImageEnv(gym.Env):
         overlapped = False
         x0,y0,x1,y1 = action[0],action[1],action[0]+element.width,action[1]+element.height
         element_box = box(x0,y0,x1,y1)
-        if self.previous_element:
-            for previous_element in self.previous_element:
-                if element_box.intersects(previous_element):
+        if len(self.previous_element) > 1:
+            for previous_element in self.previous_element[1:]:
+                previous_box = box(previous_element[0],previous_element[1],previous_element[2],previous_element[3])
+                if element_box.intersects(previous_box):
                     overlapped = True
-
-        self.previous_element.append(element_box)
+        self.previous_element[self.current_step] = np.array([x0,y0,x1,y1])
         return overlapped
 
     def isoutofscreen(self,action,element):
@@ -118,24 +132,28 @@ def get_elements(jsonfile):
         elements.append(PasteImage(x=box[0],y=box[1],imagepath=imagepath))
     return elements
 
-def load_element(element: PasteImage,factor=1):
+def load_element(element: PasteImage):
     image = Image.open(element.imagepath)
-    width, height = image.size
-    image = image.resize((round(width/factor), round(height/factor)), Image.ANTIALIAS)
+    image = image.resize((round(image.width/5), round(image.height/5)), Image.ANTIALIAS)
     return image
 
-class RandomGuessReinforcementLearner():
-    def __init__(self,jsonfile,observation_shape):
+class RLAgent():
+    def __init__(self,jsonfile):
         elements = get_elements(jsonfile)
-        elements = [load_element(element,factor=2352/observation_shape[0]) for element in elements]
+        elements = [load_element(element) for element in elements]
         self.elements = shuffle(elements)
-        self.env = ImageEnv(observation_shape,elements)
+        self.env = ImageEnv(elements)
         self.agent_observation = None
+        self.model = PPO('MultiInputPolicy',self.env,verbose=1)
+
 
         #self.agent_check() -> Passed
 
     def agent_check(self):
         check_env(self.env)
+
+    def learn(self,n_episode=30000):
+        self.model.learn(n_episode)
 
     def play(self):
         observation = self.env.reset()
@@ -152,19 +170,19 @@ class RandomGuessReinforcementLearner():
             self.agent_observation = observations
 
             if done:
-                agentResult = Image.fromarray(observation['state'])
-                print('reward:',reward)
+                print(info)
                 break
         self.env.close()
-        return Image.fromarray(observation['state'])
     
     def agent_reset(self):
         self.env.reset()
         self.agent_observation = None
 
 if __name__ == '__main__':
-    deep_reinforced_learner = RandomGuessReinforcementLearner('/home/delta/vscode/dataextraction/croppedData/croppedData06_08_2022_04_02_28.json',
-                                                         (2352,1568,3))
-
-    deep_reinforced_learner.play()
-    print(deep_reinforced_learner.agent_observation['info'])
+    agent = RLAgent('/home/delta/vscode/dataextraction/croppedData/croppedData06_08_2022_04_02_28.json')
+    agent.learn()
+    agent.env.reset()
+    for i in range(20):
+        agent.play()
+        agent.agent_reset()
+   
