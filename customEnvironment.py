@@ -1,4 +1,5 @@
 
+from typing import Dict
 from stable_baselines3.common.env_checker import check_env
 from shapely.geometry import box
 from imageprocessing import *
@@ -22,7 +23,11 @@ class ImageEnv(gym.Env):
         print('game started:', len(elements))
         self.observation_shape = observation_shape
         self.elements = elements
-        self.observation_space = gym.spaces.Box(low=0, high=255, shape= observation_shape, dtype=np.uint8)
+        self.observation_space = gym.spaces.Dict({
+            'state':gym.spaces.Box(low=0, high=255, shape=self.observation_shape, dtype=np.uint8),
+            'next_element_height':gym.spaces.Discrete(observation_shape[1]),
+            'next_element_width':gym.spaces.Discrete(observation_shape[0]),
+        })
         self.action_space = gym.spaces.Tuple((gym.spaces.Discrete(observation_shape[1]),gym.spaces.Discrete(observation_shape[0])))
         self.current_step = 0
         self.reset()
@@ -40,16 +45,17 @@ class ImageEnv(gym.Env):
         else:
             done = True
             print('overlapped, game over, see final score below:')
-        observation = self.render(action,element,overlapped,outofscreen)
+        state = self.render(action,element,overlapped,outofscreen)
 
         if self.current_step == len(self.elements)-1:
             done = True
         
         else:
             self.next_element = self.elements[self.current_step+1]
+            observation = {'state':state,'next_element_height':self.next_element.height,'next_element_width':self.next_element.width}
             self.current_step += 1
 
-        info = {'rewards':self.rewards,'done':done, 'next_element':self.next_element}
+        info = {'rewards':self.rewards,'done':done, 'next_width':self.next_element.width,'next_height':self.next_element.height}
         return observation, self.rewards, done,info
 
     def render(self,action,element,overlapped,outofscreen):
@@ -74,7 +80,8 @@ class ImageEnv(gym.Env):
         self.previous_action = None
         self.current_step = 0
         self.next_element = self.elements[0]
-        return self.a4paper
+        observation = {'state':self.a4paper,'next_element_height':self.next_element.height,'next_element_width':self.next_element.width}
+        return observation
 
     def close(self):
         pass
@@ -139,20 +146,25 @@ class RandomGuessReinforcementLearner():
             observations = {
                 'reward': reward,
                 'done': done,
-                'next_element': info['next_element'],
-                'observation': observation
+                'observation': observation,
+                'info': info
             }
             self.agent_observation = observations
 
             if done:
-                agentResult = Image.fromarray(observation)
+                agentResult = Image.fromarray(observation['state'])
                 print('reward:',reward)
                 break
         self.env.close()
-        return Image.fromarray(observation)
+        return Image.fromarray(observation['state'])
     
     def agent_reset(self):
         self.env.reset()
         self.agent_observation = None
 
-    
+if __name__ == '__main__':
+    deep_reinforced_learner = RandomGuessReinforcementLearner('/home/delta/vscode/dataextraction/croppedData/croppedData06_08_2022_04_02_28.json',
+                                                         (2352,1568,3))
+
+    deep_reinforced_learner.play()
+    print(deep_reinforced_learner.agent_observation['info'])
