@@ -88,7 +88,7 @@ def load_element(element: PasteImage):
 
 class Game_Engine():
     def __init__(self,elements):
-        self.elements = elements
+        self.elements = shuffle(elements)
         max_width = []
         max_height = []
         for element in self.elements:
@@ -170,8 +170,7 @@ class Game_Engine():
     def step(self):
         self.current_frame += 1
         self.previous_actions.append(self.this_action)
-        self.elements = shuffle(self.elements)
-
+        
 
     def check_overlapped(self):
         current_action_x = self.this_action['choose_location_x_to_paste_image']
@@ -218,15 +217,6 @@ class Game_Engine():
 
 
 if __name__ == '__main__':
-    
-    #Made a generic model to learn from pictures (multiple pictures) (instead of feature engineering (which can train 10x faster because the model doesnt need to see the actual pixels)
-    #But this is not the point. Who cares if it's slow as long as it is generic and it works
-    #Training for 10millions steps. Should be done when I wake up (save every 50k step)
-    #Currently there is a pytorch glitch which prevent you to carry out more training after the initial train (hence 10million steps with plenty of checkpoints)
-    
-    #The observation space and action space can be extended for other generic tasks
-    
-    
     json_file = '/home/delta/vscode/dataextraction/croppedData/croppedData06_08_2022_04_02_28.json'
     elements = get_elements(json_file)
     elements = [load_element(element) for element in elements]
