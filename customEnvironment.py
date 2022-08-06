@@ -170,7 +170,7 @@ class Game_Engine():
     def step(self):
         self.current_frame += 1
         self.previous_actions.append(self.this_action)
-        
+
 
     def check_overlapped(self):
         current_action_x = self.this_action['choose_location_x_to_paste_image']
@@ -236,7 +236,7 @@ if __name__ == '__main__':
             action, _ = model.predict(observation)
             observation, reward, done, info = env.step(action)
             if done:
-                observation['main_screen'].show()
+                Image.fromarray(observation['main_screen']).show()
                 break
         env.close()
         
