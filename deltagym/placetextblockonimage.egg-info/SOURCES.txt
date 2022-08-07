@@ -1,0 +1,9 @@
+README.md
+setup.py
+delta_gym/__init__.py
+delta_gym/envs/__init__.py
+delta_gym/envs/text_on_image_env.py
+placetextblockonimage.egg-info/PKG-INFO
+placetextblockonimage.egg-info/SOURCES.txt
+placetextblockonimage.egg-info/dependency_links.txt
+placetextblockonimage.egg-info/top_level.txt
