@@ -1,6 +1,5 @@
 # Pytorch is such an efficient matrix manipulation language
 
-
 import gym
 import torch
 import torch.nn.functional as F
@@ -121,7 +120,7 @@ if __name__ == '__main__':
             done = True
             print('You reached your retirement age')
 
-    # This game is designed to be solved by a reinforcement learning agent using DQN  (not for human)
+    # This game is designed to be solved by a reinforcement learning agent using DQN  (not for human). The goal is to mimize expenditure while maximise BCR
 
     #actions are: [[[0,0],[0,1],[1,1].....]]]  where [0,0] = not fixing a component belong to a structure, [0,1] = fix CS4 component only, [1,0] =fix CS3, [1,1] = fix both
     #fixing CS3 costs $50, fixing CS4 costs $100
