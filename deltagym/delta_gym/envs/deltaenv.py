@@ -1,4 +1,3 @@
-from turtle import shape
 import gym
 import torch
 import torch.nn.functional as F
