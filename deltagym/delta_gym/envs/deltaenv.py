@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from stable_baselines3.common.env_checker import check_env
-from gym.spaces import MultiDiscrete, Box
+from gym.spaces import Box
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -14,8 +14,8 @@ class StructureManagementEnv(gym.Env):
         self.number_of_structures = number_of_structures
         self.number_of_components = number_of_components
         self.observation_space = Box(low=0, high=100, shape=(number_of_structures,number_of_components,4), dtype=np.double)
-        actions = torch.tensor([2]).repeat(number_of_structures*number_of_components,2).numpy()
         self.action_space =  Box(low=0, high=1, shape=(number_of_structures*number_of_components*2,), dtype=np.uint8)
+        self.environment_copy = None
 
     def step(self, action):
         this_year_condition_state_forcast = self.next_year_quantity_distribution()
@@ -59,18 +59,22 @@ class StructureManagementEnv(gym.Env):
             self.done = True
             return self.condition_quantity.numpy(), self.rewards, self.done, info
         return self.condition_quantity.numpy(), self.rewards, self.done, info
+
     def reset(self):
+        if self.environment_copy is not None:
+            condition_quantity = self.environment_copy.detach().clone()
+        else:
+            condition_quantity = torch.round(torch.softmax(torch.rand(self.number_of_structures,self.number_of_components,4),dim=2)*100) #sum quantity in each condition state of each component is 100
+            self.condition_state_probabilty_moving_to_next_state()
+            self.environment_copy = condition_quantity.detach().clone()
+        self.condition_quantity = condition_quantity
         self.ation = torch.tensor([0]).repeat(self.number_of_structures,self.number_of_components,2).numpy()
         self.done = False
         self.BCR = 0
         self.rewards = 0
         self.expenditure = 0
         self.budget = 100000
-        self.condition_state_probabilty_moving_to_next_state()
-        condition_quantity = torch.round(torch.softmax(torch.rand(self.number_of_structures,self.number_of_components,4),dim=2)*100) #sum quantity in each condition state of each component is 100
-        self.condition_quantity = condition_quantity
         self.step_number = 0
-        print(condition_quantity.numpy())
         return condition_quantity.numpy()
 
     def render(self):
@@ -103,6 +107,18 @@ class StructureManagementEnv(gym.Env):
         self.condition_quantity = torch.flip(torch.einsum('ijk,ijkl->ijl',[A,B]),(2,))
         return self.condition_quantity
 
-    
+if __name__ == '__main__':
+    print('Testing the environment')
    
+
     
+        
+
+    
+    
+
+                                        
+
+
+
+
