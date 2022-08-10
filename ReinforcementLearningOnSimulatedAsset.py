@@ -9,6 +9,9 @@ warnings.filterwarnings("ignore")
 import optuna
 import gym
 
+# The agent Do learn. The  learning curve is upward, which means we need to make the simulation harder so that the
+# agent can neverrrr escape the simulation
+
 
 def optimize_ppo(trial):
     return {
