@@ -34,7 +34,7 @@ class StructureManagementEnv(gym.Env):
         self.condition_quantity = revised_condition_state_after_rehabs
         change_to_condition_factor = improvement_to_condition_state_quantity/torch.tensor([100/8,100/4,100/2,100])
         sum_of_change_to_condition_factor = torch.sum(change_to_condition_factor,dim=2)
-        rehab_unit_rate= torch.tensor([0,0,500,1000]).repeat(self.number_of_structures,self.number_of_components,1)
+        rehab_unit_rate= torch.tensor([1000,500,0,0]).repeat(self.number_of_structures,self.number_of_components,1)
         rehab_cost = rehab_unit_rate*action
         benefit_rate = torch.tensor([100]).repeat(self.number_of_structures,self.number_of_components)
         benefit = benefit_rate*sum_of_change_to_condition_factor
