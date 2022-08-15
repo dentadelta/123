@@ -31,9 +31,11 @@ class CustomDataset(Dataset):
         self.decoder_attention_masks = []
         for i in range(len(inputs)):
             e = inputs[i]
+            prefix = e.split('\n')[0]
+            e = e[len(prefix):]
             d = targets[i]
-            encoder_dict = tokenizer(f'<{e}> </s>', truncation=True, max_length=inputs_max_length, padding="max_length")
-            labels_dict = tokenizer(f'<{d}> </s>', truncation=True, max_length=targets_max_length, padding="max_length")
+            encoder_dict = tokenizer(f'<{prefix}>{e}</s>', truncation=True, max_length=inputs_max_length, padding="max_length")
+            labels_dict = tokenizer(f'<>{d}</s>', truncation=True, max_length=targets_max_length, padding="max_length")
             self.encoder_ids.append(torch.tensor(encoder_dict['input_ids']))
             self.encoder_attention_masks.append(torch.tensor(encoder_dict['attention_mask']))
             labels = torch.tensor(labels_dict['input_ids'])
@@ -51,7 +53,6 @@ dataset = CustomDataset(csvpath='/media/delta/S/training_data.csv',tokenizer=tok
 train_size = int(0.9 * len(dataset))
 train_dataset, val_dataset = random_split(dataset, [train_size, len(dataset) - train_size])
 
-
 gc.collect()
 torch.cuda.empty_cache()
 
@@ -64,7 +65,7 @@ training_args = TrainingArguments(output_dir='/media/delta/S/results',
                                   per_device_eval_batch_size=1,
                                   gradient_accumulation_steps=3,
                                   gradient_checkpointing=True,
-                                  fp16=False,  #doesnt work for this model, will result in 0 loss
+                                  fp16=False,  #doesnt work for this model
                                   optim="adafactor", #change to adamW if you have have enough memory
                                   warmup_steps=1, 
                                   weight_decay=0.05, 
