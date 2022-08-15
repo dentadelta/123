@@ -66,7 +66,7 @@ training_args = TrainingArguments(output_dir='/media/delta/S/results',
                                   gradient_accumulation_steps=3,
                                   gradient_checkpointing=True,
                                   fp16=False,  #doesnt work for this model
-                                  optim="adafactor", #change to adamW if you have have enough memory
+                                  optim="adafactor", #change to adamw_torch if you have have enough memory['adamw_hf', 'adamw_torch', 'adamw_torch_xla', 'adamw_apex_fused', 'adafactor', 'adamw_bnb_8bit', 'sgd', 'adagrad']
                                   warmup_steps=1, 
                                   weight_decay=0.05, 
                                   logging_dir='/home/delta/Downloads/logs', 
