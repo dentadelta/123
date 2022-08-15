@@ -7,6 +7,7 @@ import os
 torch.manual_seed(42)
 import time
 
+# Think huggingface tries to hide implementation using Pytorch, lucky I was there since begining.
 
 tokenizer = AutoTokenizer.from_pretrained("google/long-t5-tglobal-large")
 model = LongT5ForConditionalGeneration.from_pretrained("google/long-t5-tglobal-large").cuda()
