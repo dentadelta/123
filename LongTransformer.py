@@ -7,17 +7,23 @@ import os
 torch.manual_seed(42)
 import time
 
-# Think huggingface tries to hide implementation using Pytorch, lucky I was there since begining.
+#Well it does work. Let the model seen work example once (one epoch).
 
-tokenizer = AutoTokenizer.from_pretrained("google/long-t5-tglobal-large")
-model = LongT5ForConditionalGeneration.from_pretrained("google/long-t5-tglobal-large").cuda()
+#BUT, the model took the shortcut (blaming the dataset) .. I would do the same
+
+#Lets train for four epoches and see what happens.
+
+#I'm Free but please pay for my electricity or my landlord wont be happy...Takes 5.5 hours to train for 4 epoches...
+
+tokenizer = AutoTokenizer.from_pretrained("google/long-t5-tglobal-base") # good enough
+model = LongT5ForConditionalGeneration.from_pretrained("google/long-t5-tglobal-base").cuda()
 
 class CustomDataset(Dataset):
     def __init__(self,csvpath, tokenizer):
         df = pd.read_csv(csvpath)
         inputs = df['inputs'].tolist()
         targets = df['targets'].tolist()
-        inputs_max_length = 512*3           # Input = 1000 words, output = 300 words  ---> Someone pays for my electricity......
+        inputs_max_length = 512*2          # Good enough
         targets_max_length = 512
         self.encoder_ids = []
         self.labels = []
@@ -26,20 +32,21 @@ class CustomDataset(Dataset):
         for i in range(len(inputs)):
             e = inputs[i]
             d = targets[i]
-            encoder_dict = tokenizer(f'predict: <{e}> </s>', truncation=True, max_length=inputs_max_length, padding="longest")
-            labels_dict = tokenizer(f'<{d}> </s>', truncation=True, max_length=targets_max_length, padding="longest")
+            encoder_dict = tokenizer(f'<{e}> </s>', truncation=True, max_length=inputs_max_length, padding="max_length")
+            labels_dict = tokenizer(f'<{d}> </s>', truncation=True, max_length=targets_max_length, padding="max_length")
             self.encoder_ids.append(torch.tensor(encoder_dict['input_ids']))
             self.encoder_attention_masks.append(torch.tensor(encoder_dict['attention_mask']))
             labels = torch.tensor(labels_dict['input_ids'])
-            labels[labels == 0] = -100
+            labels[labels == tokenizer.pad_token_id] = -100
+            if len(labels) <= 10:
+                print(labels)
             self.labels.append(labels)
             self.decoder_attention_masks.append(torch.tensor(labels_dict['attention_mask']))
     def __len__(self):
         return len(self.encoder_ids)
 
     def __getitem__(self, idx):
-        return self.encoder_ids[idx],self.encoder_attention_masks[idx], self.labels[idx], self.decoder_attention_masks[idx]
-
+        return self.encoder_ids[idx],self.labels[idx]
 dataset = CustomDataset(csvpath='/media/delta/S/training_data.csv',tokenizer=tokenizer)
 train_size = int(0.9 * len(dataset))
 train_dataset, val_dataset = random_split(dataset, [train_size, len(dataset) - train_size])
@@ -49,17 +56,16 @@ gc.collect()
 torch.cuda.empty_cache()
 
 
-
 training_args = TrainingArguments(output_dir='/media/delta/S/results', 
-                                  num_train_epochs=10, 
+                                  num_train_epochs=4, 
                                   logging_steps=10,
                                   save_steps=10000,
-                                  per_device_train_batch_size=1, 
+                                  per_device_train_batch_size=2, 
                                   per_device_eval_batch_size=1,
-                                  gradient_accumulation_steps=1,
-                                  gradient_checkpointing=False,
-                                  fp16=False,
-                                  optim="adafactor",
+                                  gradient_accumulation_steps=3,
+                                  gradient_checkpointing=True,
+                                  fp16=False,  #doesnt work for this model, will result in 0 loss
+                                  optim="adafactor", #change to adamW if you have have enough memory
                                   warmup_steps=1, 
                                   weight_decay=0.05, 
                                   logging_dir='/home/delta/Downloads/logs', 
@@ -69,10 +75,8 @@ training_args = TrainingArguments(output_dir='/media/delta/S/results',
 
 Trainer(model=model,  args=training_args, train_dataset=train_dataset, 
         eval_dataset=val_dataset, data_collator=lambda data: {'input_ids': torch.stack([f[0] for f in data]),
-                                                              'attention_mask': torch.stack([f[1] for f in data]),
-                                                              'decoder_attention_mask': torch.stack([f[3] for f in data]),
-                                                              'decoder_input_ids': torch.stack([f[2] for f in data]),
-                                                              'labels': torch.stack([f[2] for f in data])}).train()
+                                                            'labels': torch.stack([f[1] for f in data])
+                                                            }).train()
 
 model.save_pretrained('/media/delta/S/model')
 tokenizer.save_pretrained('/media/delta/S/tokenizer')
