@@ -16,7 +16,7 @@ class CustomDataset(Dataset):
         df = pd.read_csv(csvpath)
         inputs = df['inputs'].tolist()
         targets = df['targets'].tolist()
-        inputs_max_length = 512*3           # Input = 1500 words, output = 500 words  ---> Someone pays for my electricity......
+        inputs_max_length = 512*3           # Input = 1000 words, output = 300 words  ---> Someone pays for my electricity......
         targets_max_length = 512
         self.encoder_ids = []
         self.labels = []
