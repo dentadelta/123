@@ -22,8 +22,8 @@ df['box'] = df['box'].astype(object)
 @click.command()
 @click.argument('image_path')
 @click.argument('captions')
-@click.argument('start_chainage')
-@click.argument('end_chainage')
+@click.argument('start_distance')
+@click.argument('end_distance')
 def createVideo(image_path,captions,start_distance,end_distance):
     try:
         start_distance = float(start_distance)
