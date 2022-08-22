@@ -1,1 +1,5 @@
-# Expect my code to break for bugs reasons or library dependencies. But it does works on my PC (or works on perfect fake data)
+# to the best of my knowledge,
+# my codes works at the time of writing
+# on my Linux PC
+# I made minor tweaks on external edited libraries as well
+# itchy back
