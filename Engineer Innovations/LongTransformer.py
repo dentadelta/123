@@ -7,13 +7,6 @@ import os
 torch.manual_seed(42)
 import time
 
-#Well it does work. Let the model seen work example once (one epoch).
-
-#BUT, the model took the shortcut (blaming the dataset) .. I would do the same
-
-#Lets train for four epoches and see what happens.
-
-#I'm Free but please pay for my electricity or my landlord wont be happy...Takes 5.5 hours to train for 4 epoches...
 
 tokenizer = AutoTokenizer.from_pretrained("google/long-t5-tglobal-base") # good enough
 model = LongT5ForConditionalGeneration.from_pretrained("google/long-t5-tglobal-base").cuda()
