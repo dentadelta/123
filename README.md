@@ -1,4 +1,4 @@
-# Image Captioning
+# Image Captioning (Doing the simple things to change the world)
 
 This image captioning was finetuned on XXX database. Using this model, the user can quickly generate a caption for an image. The model was trained on YYY database, so the user can test out the model by downloading asset data from other database from other places
 
