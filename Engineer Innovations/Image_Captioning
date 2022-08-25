@@ -1,0 +1,15 @@
+import gradio as gr
+
+def greet(name):
+    return "Hello " + name + "!"
+
+with gr.Blocks() as demo:
+    weblink = gr.Textbox(label="Web Link", lines=1, default="https://www.google.com")
+    input_number = gr.Textbox(label="Case Number", lines=1, default="123456789")
+    output = gr.Textbox(label="Case Number")
+    greet_btn = gr.Button("Application")
+
+    greet_btn.click(fn=greet, inputs=[weblink,input_number], outputs=output)
+
+demo.launch()
+
