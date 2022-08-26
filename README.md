@@ -6,4 +6,4 @@ We often think that cheating is like taking a shortcut to reach a destination, b
 
 Life is a very long journey and it is in fact a continuation over many generations that one person cannot do alone. We can only travel as far as we can carrying the torch and then pass it on to the next generation. Holding that torch is a life duty that one wishes to take on. And holding that torch requiring a person to be fit both physically and mentally, so that they do not do harm to themself, and most importantly, to others.
 
-### Keep calm, I am the influencer!
+###The influencer!
