@@ -1,5 +1,5 @@
 # Firebase Realtime Database
-# Intersection Street Light
+# Intersection Street Lights
 # Squid game
 
 I believe the throne has already been given. And it is my resposibility to win (obviously, I'm doing everything right at work!)
