@@ -1,0 +1,509 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Lot Management</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <link href="{{ url_for('static', path='styles.css') }}" rel="stylesheet">
+    <style>
+        body{
+            padding:20px;
+        }
+        </style>
+</head>
+<body>
+
+<div class="grid-container">
+<div class="item1">
+    <h1>Lot Management System</h1>
+</div>
+<div class="item2">
+    <nav class="navbar navbar-light bg-light">
+        <form class="form-inline" action="/search" method="post" id="searchID">
+          <input class="form-control mr-sm-2" type="search" placeholder="Search Lot" aria-label="Search" name="search_text" value="Search Lot">
+          <button class="btn btn-dark" type="submit">Search</button>
+        </form>
+        <button class="btn btn-warning"  onClick="javascript:window.location.href='/form'">Clear</button>
+    </nav>
+</div>
+<div class="item3">
+    <div style="align-items: left;">
+
+            <h2> List of Lot</h2>
+            <table class="table table-bordered" id="tableID">
+            <thead>
+            <tr>
+                <th scope="col">Lot Number</th>
+                <th scope="col">Description</th>
+                <th scope="col">Status</th>
+                <th scope="col">Road</th>
+                <th scope="col">Start Ch</th>
+                <th scope="col">End Ch</th>
+                <th scope="col">Start Date</th>
+                <th scope="col">End Date</th>
+                <th scope="col">Measured Quantity</th>
+                <th scope="col">Scheduled Quantity</th>
+            </tr>
+            </thead>
+            <tbody style="cursor:pointer">
+                {% for lot in lots %}
+                <tr>
+                    <td scope="row">{{lot.lot_number}}</td>
+                    <td class="w-75">{{lot.lot_description}}</td>
+                    <td class="w-25">{{lot.status}}</td>
+                    <td class="w-25">{{lot.road}}</td>
+                    <td class="w-25">{{lot.start_ch}}</td>
+                    <td class="w-25">{{lot.end_ch}}</td>
+                    <td class="w-25">{{lot.start_date}}</td>
+                    <td class="w-25">{{lot.end_date}}</td> 
+                    <td class="w-25">{{lot.measured_quantity}}</td>
+                    <td class="w-25">{{lot.baseline_quantity}}</td>
+            </tr>
+                {% endfor %}
+            </tbody>
+    </table> 
+</div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+</div>
+<div class="item4">
+        <!-- Trigger the modal with a button -->
+        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#myModal" id="openModal">Create Lot</button>
+        <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#tesetrquestregiser">Test Req Register</button><br>
+        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#ncrregistermodal" id="openModal">Non Conformanc Report Register</button>
+         <!-- Modal -->
+<div class="modal fade bd-example-modal-xl" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">Lot</h4>
+        </div>
+        <div class="modal-body">
+            <div class="modal-body">
+
+                <form  action="/form" method="post" id="formID">
+                    <div class="row" id="new_lot_form">
+                        <div class="col-md-2 col-sm-1 form-group">
+                            <label>Lot Number</label>
+                        </div>
+                        <div class="col-md-3 col-sm-11 form-group">
+                            <input type="text" class="form-control" name="lot_number"/>
+                        </div>
+                        <div class="col-md-2 col-sm-1 form-group">
+                            <label>Lot Description</label>
+                        </div>
+                        <div class="col-md-4 col-sm-11 form-group">
+                            <input type="text" class="form-control" name="lot_description" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2 col-sm-1 form-group">
+                            <label>Lot Status</label>
+                        </div>
+                        <div class="col-md-3 col-sm-4 form-group">
+                            <label for="status" style="font-size:20px; font-weight:normal"><input type="radio" class="form-control" name="status" id="status_open" style="height: 15px; width: 15px;" value="Open" checked/>  open</label>
+                            <label for="status" style="font-size: 20px; font-weight:normal"><input type="radio" class="form-control" name="status" id="status_closed" style="height: 15px; width: 15px;" value="Closed"/>  closed</label>
+                            
+                        </div>
+                        <div class="col-md-2 col-sm-1 form-group">
+                            <label>Road</label>
+                        </div>
+                        <div class="col-md-4 col-sm-11 form-group">
+                            <input type="text" class="form-control" name="road"/>
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-2 col-sm-1 form-group">
+                            <label>Start Ch.</label>
+                        </div>
+                        <div class="col-md-3 col-sm-11 form-group">
+                            <input type="text" class="form-control", name="start_ch"/>
+                        </div>
+
+
+                        <div class="col-md-2 col-sm-1 form-group">
+                            <label>End Ch.</label>
+                        </div>
+                        <div class="col-md-4 col-sm-11 form-group">
+                            <input type="text" class="form-control", name="end_ch"/>
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-2 col-sm-1 form-group">
+                            <label>Start Date</label>
+                        </div>
+                        <div class="col-md-3 col-sm-11 form-group">
+                            <input type="date" class="form-control" name= "start_date"/>
+                        </div>
+
+
+                        <div class="col-md-2 col-sm-1 form-group">
+                            <label>End Date</label>
+                        </div>
+                        <div class="col-md-4 col-sm-11 form-group">
+                            <input type="date" class="form-control" name="end_date"/>
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-2 col-sm-1 form-group">
+                            <label>Measured quantity</label>
+                        </div>
+                        <div class="col-md-3 col-sm-11 form-group">
+                            <input type="text" class="form-control" name="measured_quantity"/>
+                        </div>
+                        <div class="col-md-2 col-sm-1 form-group">
+                            <label>Baseline quantity</label>
+                        </div>
+                        <div class="col-md-4 col-sm-11 form-group">
+                            <input type="text" class="form-control" name="baseline_quantity"/> 
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success" >Update or Create New Lot</button>
+                    <button type="button" id="mymodal-inner" class="btn btn-danger" data-toggle="modal" data-target="#myModal-inner" disabled>Raise Test Request</button> 
+                    <button type="button" id="mymodal-inner-ncr" class="btn btn-info" data-toggle="modal" data-target="#myModal-inner-ncr" disabled>Raise NCR</button>
+                </form>
+              </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="myModal-inner" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalTestRequestLabel" >Test Request</h4>
+        </div>
+        <div class="modal-body">
+          <form>
+            Test Request Number: <input type="text" class="form-control" name="test_request_number"/>
+            Test Request Description: <input type="text" class="form-control" name="test_request_description"/>
+            Due Date: <input type="date" class="form-control" name="due_date"/> 
+            Other Lots: <input type="text" class="form-control" name="other_lots"/>
+            Test Request Types and Number of Tests:
+            <textarea rows="5" cols="55" name="test_request_type_number_of_test"></textarea>
+          </form>
+          <br>
+          <br>
+          <br>
+            <button type="button" class="btn btn-success" data-dismiss="modal" onclick="createTestRequest()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="myModal-inner-ncr" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel"> NCR </h4>
+        </div>
+        <div class="modal-body">
+          <form>
+            NCR Number:
+            <br>
+            <input type="text" class="form-control" name="ncr_number"/>
+            Receipient:
+            <br>
+            <input type="text" class="form-control" name="recipient"/>
+<br>
+            NCR Title:
+<br>
+            <input type="text" class="form-control" name="ncr_title"/>
+<br>
+            NCR Details:
+            <br>
+            <input type="text" rows="5" cols="55" class="form-control" name="ncr_detail">
+            <br>
+            Affected Lots:
+            <br>
+            <input type="text" rows="2" cols="55" class="form-control" name="affected_lot">
+            <br>
+          </form>
+        <button type="button" class="btn btn-success" data-dismiss="modal" onclick="raiseNCR()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Test Request Register Modal -->
+
+    <div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" id="tesetrquestregiser">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Test Request Register</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped table-bordered" id="testrequestregister">
+                    <thead>
+                        <tr>
+                            <th>Test Request Number</th>
+                            <th>Test Request Description</th>
+                            <th>Due Date</th>
+                            <th>Other Lots</th>
+                            <th>Test Request Types and Number of Tests</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>TR-001</td>
+                            <td>Lorem Ipsum</td>
+                            <td>Lorem </td>
+                            <td>Lorem </td>
+                            <td>Lorem Ipsum</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+       
+        </div>
+    </div>
+    </div>
+    <!-- NCR Register Modal -->
+    <div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" id="ncrregistermodal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">NCR Register</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped table-bordered" id="ncrregister">
+                        <thead>
+                            <tr>
+                                <th>NCR Number</th>
+                                <th>Recipient</th>
+                                <th>NCR Title</th>
+                                <th>NCR Details</th>
+                                <th>Affected Lots</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>NCR-001</td>
+                                <td>Lorem Ipsum</td>
+                                <td>Lorem </td>
+                                <td>Lorem </td>
+                                <td>Lorem Ipsum</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+           
+            </div>
+        </div>
+        </div>
+
+</div>
+</div>
+
+<p>Click the button to add a new lot. click on lot to open lot. open lot to raise test request survey request and NCR.</p>
+<p>On test request/ survey request and NCR panel, there is a button to send an automated email to admin team</p>
+
+<script>
+    var lot_n = ""
+    
+    function raiseNCR(){
+        ncr_number = document.getElementsByName("ncr_number")[0].value;
+        receipient = document.getElementsByName("recipient")[0].value;
+        ncr_title = document.getElementsByName("ncr_title")[0].value;
+        ncr_detail = document.getElementsByName("ncr_detail")[0].value;
+        affected_lot = document.getElementsByName("affected_lot")[0].value;
+        var data = {
+            ncr_number:ncr_number,
+            receipient:receipient,
+            ncr_title:ncr_title,
+            ncr_details:ncr_detail,
+            affected_lot:affected_lot,
+        };
+        
+        console.log(data);
+      fetch(`${window.origin}/raisencr`, {
+         method: "POST",
+         credential: "include",
+         body: JSON.stringify(data),
+         cache:"no-cache",
+         headers: new Headers({
+           "content-type":"application/json"
+         })
+       })
+      .then(function (response) {
+         if (response.status !== 200){
+           console.log(`Response status was not 200 ${response.status}`);
+           return;
+         }
+      response.json().then(function(data){
+             console.log(data.data);
+        })
+    })
+        
+    };
+    
+    function createTestRequest(){
+        test_request_number = document.getElementsByName("test_request_number")[0].value;
+        test_request_description = document.getElementsByName("test_request_description")[0].value;
+        due_date = document.getElementsByName("due_date")[0].value;
+        other_lots = document.getElementsByName("other_lots")[0].value;
+        
+        test_request_type_number_of_test = document.getElementsByName("test_request_type_number_of_test")[0].value;
+        var data = {
+            lot_number: lot_n,
+            test_request_number: test_request_number,
+            test_request_description:test_request_description,
+            due_date:due_date,
+            other_lots: other_lots,
+            test_request_type_number_of_test:test_request_type_number_of_test,
+        };
+        
+        fetch(`${window.origin}/test_request`, {
+         method: "POST",
+         credential: "include",
+         body: JSON.stringify(data),
+         cache:"no-cache",
+         headers: new Headers({
+           "content-type":"application/json"
+         })
+       })
+      .then(function (response) {
+         if (response.status !== 200){
+           console.log(`Response status was not 200 ${response.status}`);
+           return;
+         }
+      response.json().then(function(data){
+             console.log(data.data);
+        })
+    })
+        
+    };
+
+function onRowClick(tableId, callback) {
+    var table = document.getElementById(tableId),
+        rows = table.getElementsByTagName("tr"),
+        i;
+    for (i = 0; i < rows.length; i++) {
+        table.rows[i].onclick = function (row) {
+            return function () {
+                callback(row);
+            };
+        }(table.rows[i]);
+    }
+};
+onRowClick("tableID", function (row){
+    var lot_number = row.getElementsByTagName("td")[0].innerHTML;
+    lot_n = lot_number;
+    var lot_description = row.getElementsByTagName("td")[1].innerHTML;
+    var lot_status = row.getElementsByTagName("td")[2].innerHTML;
+    var road = row.getElementsByTagName("td")[3].innerHTML;
+    var start_ch = row.getElementsByTagName("td")[4].innerHTML;
+    var end_ch = row.getElementsByTagName("td")[5].innerHTML;
+    var start_date = row.getElementsByTagName("td")[6].innerHTML;
+    var end_date = row.getElementsByTagName("td")[7].innerHTML;
+    var measured_quantity = row.getElementsByTagName("td")[8].innerHTML;
+    var baseline_quantity = row.getElementsByTagName("td")[9].innerHTML;
+    var button = document.getElementById("openModal");
+    button.click();
+    document.getElementsByName("lot_number")[0].value = lot_number;
+    document.getElementsByName("lot_description")[0].value = lot_description;
+    if (lot_status == "Open"){
+        document.forms["formID"]["status_open"].checked=true;
+    }
+    else {
+        document.forms["formID"]["status_closed"].checked=true;
+    }
+    document.getElementsByName("road")[0].value = road;
+    document.getElementsByName("start_ch")[0].value = start_ch;
+    document.getElementsByName("end_ch")[0].value = end_ch;
+    document.getElementsByName("start_date")[0].value = start_date;
+    document.getElementsByName("end_date")[0].value = end_date;
+    document.getElementsByName("measured_quantity")[0].value = measured_quantity;
+    document.getElementsByName("baseline_quantity")[0].value = baseline_quantity;
+    document.getElementById("mymodal-inner").disabled = false;
+    document.getElementById("mymodal-inner-ncr").disabled = false;
+    document.getElementById("ModalTitle").innerHTML = "Update Lot";
+
+});
+$('#myModal').on('hidden.bs.modal', function () {
+    document.getElementById("mymodal-inner").disabled = true;
+    document.getElementById("mymodal-inner-ncr").disabled = true;
+    document.getElementById("ModalTitle").innerHTML = "Create Lot";
+    document.getElementsByName("lot_number")[0].value = "";
+    document.getElementsByName("lot_description")[0].value = "";
+    document.getElementsByName("measured_quantity")[0].value = 0.0;
+    document.getElementsByName("baseline_quantity")[0].value = 0.0;
+    document.getElementsByName("road")[0].value = "";
+    document.getElementsByName("start_ch")[0].value = 0.0;
+    document.getElementsByName("end_ch")[0].value = 0.0;
+    document.forms["formID"]["status_open"].checked=true;
+});
+
+$('#myModal-inner').on('show.bs.modal', function () {
+    var testrequestdata = {{ test_request_data|safe }};
+    for (let i = 0; i < testrequestdata.length; i++) {
+         test_request = testrequestdata[i]
+         if (test_request.lot_number == lot_n){
+              document.getElementById("myModalTestRequestLabel").innerHTML = lot_n;
+              document.getElementsByName("test_request_number")[0].value = test_request.test_request_no;
+              document.getElementsByName("test_request_description")[0].value = test_request.test_request_description ;
+              document.getElementsByName("due_date")[0].value = test_request.due_date;
+              document.getElementsByName("other_lots")[0].value = test_request.other_lots;
+              document.getElementsByName("test_request_type_number_of_test")[0].value = test_request.test_type_and_number_of_test ;        
+         }
+        }
+});
+
+$('#myModal-inner').on('hidden.bs.modal', function () {
+    document.getElementsByName("test_request_number")[0].value = "";
+    document.getElementsByName("test_request_description")[0].value = "";
+    document.getElementsByName("due_date")[0].value = "";
+    document.getElementsByName("other_lots")[0].value = "";
+    document.getElementsByName("test_request_type_number_of_test")[0].value = "";
+});
+
+
+$('#myModal-inner-ncr').on('show.bs.modal', function () {
+    document.getElementsByName("affected_lot")[0].value = lot_n;
+    var ncr_data = {{ ncr_data|safe }};
+    for (let i = 0; i < ncr_data.length; i++) {
+         ncr = ncr_data[i]
+         affectetlot = ncr['affected_lot']
+         for (let i = 0; i < affectetlot.length; i++) {
+             a_lot = affectetlot[i]
+             if (a_lot == lot_n){
+                document.getElementsByName("ncr_number")[0].value = ncr.ncr_number;
+                document.getElementsByName("recipient")[0].value = ncr.receipient;
+                document.getElementsByName("ncr_title")[0].value = ncr.ncr_title;
+                document.getElementsByName("ncr_detail")[0].value = ncr.ncr_details;
+                document.getElementsByName("affected_lot")[0].value = ncr.affected_lot;
+             }
+         }            
+        }
+});
+
+$('#myModal-inner-ncr').on('hidden.bs.modal', function () {
+    document.getElementsByName("ncr_number")[0].value = "";
+    document.getElementsByName("recipient")[0].value = "";
+    document.getElementsByName("ncr_title")[0].value = "";
+    document.getElementsByName("ncr_detail")[0].value = "";
+    document.getElementsByName("affected_lot")[0].value = "";
+});
+
+</script>
+</body>
+</html>
