@@ -251,23 +251,19 @@
                 <h4 class="modal-title" id="myModalLabel">Test Request Register</h4>
             </div>
             <div class="modal-body">
-                <table class="table table-striped table-bordered" id="testrequestregister">
+                <table class="table table-striped table-bordered" id="test_request_table">
                     <thead>
                         <tr>
                             <th>Test Request Number</th>
                             <th>Test Request Description</th>
                             <th>Due Date</th>
                             <th>Other Lots</th>
-                            <th>Test Request Types and Number of Tests</th>
+                            <th>Test Request & No. Test</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>TR-001</td>
-                            <td>Lorem Ipsum</td>
-                            <td>Lorem </td>
-                            <td>Lorem </td>
-                            <td>Lorem Ipsum</td>
+
                         </tr>
                     </tbody>
                 </table>
@@ -297,11 +293,6 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>NCR-001</td>
-                                <td>Lorem Ipsum</td>
-                                <td>Lorem </td>
-                                <td>Lorem </td>
-                                <td>Lorem Ipsum</td>
                             </tr>
                         </tbody>
                     </table>
@@ -503,6 +494,70 @@ $('#myModal-inner-ncr').on('hidden.bs.modal', function () {
     document.getElementsByName("ncr_detail")[0].value = "";
     document.getElementsByName("affected_lot")[0].value = "";
 });
+$('#tesetrquestregiser').on('show.bs.modal', function () {
+    test_request_table = document.getElementById("test_request_table");
+    var test_requst_data = {{ test_request_data|safe }};
+    for (let i = 0; i < test_requst_data.length; i++) {
+         test_request = test_requst_data[i]
+         console.log(test_request);
+              var row = test_request_table.insertRow(1);
+              var cell1 = row.insertCell(0);
+              var cell2 = row.insertCell(1);
+              var cell3 = row.insertCell(2);
+              var cell4 = row.insertCell(3);
+              var cell5 = row.insertCell(4);
+              cell1.innerHTML = test_request.test_request_no;
+              cell2.innerHTML = test_request.test_request_description;
+              cell3.innerHTML = test_request.due_date;
+              cell4.innerHTML = test_request.other_lots;
+              cell5.innerHTML = test_request.test_type_and_number_of_test;
+         
+        }
+
+});
+
+$('#tesetrquestregiser').on('hidden.bs.modal', function () {
+    test_request_table = document.getElementById("test_request_table");
+    var rowCount = test_request_table.rows.length;
+    for (var x=rowCount-1; x>0; x--) {
+        test_request_table.deleteRow(x);
+    }
+
+});
+
+$('#ncrregistermodal').on('show.bs.modal', function () {
+    ncr_register_table = document.getElementById("ncrregister");
+    var ncr_data = {{ ncr_data|safe }};
+    for (let i = 0; i < ncr_data.length; i++) {
+         ncr = ncr_data[i]
+         console.log(ncr);
+              var row = ncr_register_table.insertRow(1);
+              var cell1 = row.insertCell(0);
+              var cell2 = row.insertCell(1);
+              var cell3 = row.insertCell(2);
+              var cell4 = row.insertCell(3);
+              var cell5 = row.insertCell(4);
+              cell1.innerHTML = ncr.ncr_number;
+              cell2.innerHTML = ncr.receipient;
+              cell3.innerHTML = ncr.ncr_title;
+              cell4.innerHTML = ncr.ncr_details;
+              cell5.innerHTML = ncr.affected_lot;
+         
+        }
+    
+
+});
+
+$('#ncrregistermodal').on('hidden.bs.modal', function () {
+    ncr_register_table = document.getElementById("ncrregister");
+    var rowCount = ncr_register_table.rows.length;
+    for (var x=rowCount-1; x>0; x--) {
+        ncr_register_table.deleteRow(x);
+    }
+
+});
+
+
 
 </script>
 </body>
