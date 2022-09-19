@@ -1,7 +1,7 @@
 #WIP
 
 remaining:
- -touch up
+* touch up
  -extra
  -bug free codes (too much effort, 80/20 rules)
  -send email to receipients
