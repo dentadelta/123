@@ -1,3 +1,6 @@
-# A reusable Reactjs libary components that can be used for future projects
+# A Reactjs libary contains reusable components
+Reusable components can be used on future project
+Do it once
+Plug and play
 
-This project showcase the blueprint
+Only blueprint is shown in this specific project
