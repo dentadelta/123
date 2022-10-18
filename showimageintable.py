@@ -11,6 +11,6 @@ def callback(x,filename=None):
         file.close()
     return HTML(x)
   
-  
+  # do something with df:
   # df = pd.read_csv('...')
-  callback(df)
+  #callback(df)
