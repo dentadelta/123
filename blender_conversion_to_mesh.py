@@ -1,5 +1,6 @@
 #once run, press N in the main view to bring out the side panel, then click on the Gantry Design Tool
-#still need to create a quick tool to automatically create the corrosion hole using the extrude "manifold" tool
+#still need to create a quick tool to create a lot of loops around the column 
+#still need to create a quick tool to automatically create the corrosion hole using the extrude "manifold" tool  (need to figure out how to select the right vertex, faces...)
 
 
 
