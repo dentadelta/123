@@ -55,3 +55,5 @@ bpy.ops.object.delete(use_global=False)
 bpy.context.space_data.shading.show_xray = True
 bpy.context.space_data.shading.show_shadows = True
 bpy.context.space_data.shading.color_type = 'TEXTURE'
+
+# So the hardest part is to procedurally generate a corrosion hole inside a gantry is done (still need to figure out the angle of rotation to cut a slice of pizza, but
