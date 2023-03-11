@@ -1,7 +1,7 @@
 # Run the code, then in the main viewport: Press N to bring out the side panel. Then click on the gantry design UI panel to adjust the gantry mesh.
 
 
-
+# Found a glitch where if you adjust the column height and corrosion height at a certain ratio it flip the cutting plane 180 and its not working.
 
 import bpy
 import os
@@ -35,11 +35,10 @@ def slice_object(object_name_1, object_name_2, self_select=False, scale=False):
     select_object(object_name_1)
     bpy.ops.object.modifier_add(type='BOOLEAN')
     bpy.context.object.modifiers["Boolean"].operation = 'INTERSECT'
-
     bpy.context.object.modifiers["Boolean"].use_self = self_select
-
     bpy.context.object.modifiers["Boolean"].object = bpy.data.objects[object_name_2]
     bpy.ops.object.apply_all_modifiers()
+
 
 
 def difference(object_name_1, object_name_2):
@@ -190,6 +189,7 @@ def createbaseplate(baseplate_radius, baseplate_thickness, name='Baseplate'):
                                         scale=(1, 1, 1))
     bpy.context.object.name = name
 
+
 def createPanel(x,y,z, lx,ly,lz, name="Panel"):
     bpy.ops.mesh.primitive_cube_add(size=1, enter_editmode=False, align='WORLD', location=(lx, ly, lz), scale=(1, 1, 1))
     bpy.ops.transform.resize(value=(x,y,z), orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(False, False, True), mirror=False, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1, use_proportional_connected=False, use_proportional_projected=False, snap=False, snap_elements={'INCREMENT'}, use_snap_project=False, snap_target='CLOSEST', use_snap_self=True, use_snap_edit=True, use_snap_nonedit=True, use_snap_selectable=False)
@@ -253,6 +253,9 @@ class GantryDesign(bpy.types.Operator):
         createCorrosion(self.CORROSION_LENGTH, self.COLUMN_RADIUS, self.COLUMN_THICKNESS, self.CORROSION_THICKNESS,
                         self.CORROSION_HEIGHT, self.BASEPLATE_THICKNESS)
 
+        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+
+
         difference('Panel', 'Column')
         rotate_object('column', 0, -90)
         difference('Column', 'column')
@@ -264,6 +267,8 @@ class GantryDesign(bpy.types.Operator):
                                          location=(0, 0, self.CORROSION_HEIGHT+0.1+self.BASEPLATE_THICKNESS),
                                          rotation=(0, 0, 0),
                                          scale=(1, 1, 1))
+
+
         slice_object('Column', 'Plane')
         delete_object('Plane')
         delete_object('column')
@@ -271,11 +276,7 @@ class GantryDesign(bpy.types.Operator):
         # I prefer to create the upper part as a shell so then I can use prepomax to create an nicely distributed mesh
         createcylidershell(self.COLUMN_RADIUS,self.COLUMN_HEIGHT-self.CORROSION_HEIGHT-0.1,z1,name='UpperColumn')
 
-        # No controversial theory here...Point
 
-        
-        
-        
     
         return {'FINISHED'}
 
