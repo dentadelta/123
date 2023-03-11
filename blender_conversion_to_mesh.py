@@ -1,3 +1,8 @@
+# Run the code, then in the main viewport: Press N to bring out the side panel. Then click on the gantry design UI panel to adjust the gantry mesh.
+
+
+
+
 import bpy
 import os
 import numpy as np
