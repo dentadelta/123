@@ -191,6 +191,10 @@ def createPanel(x,y,z, lx,ly,lz, name="Panel"):
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     bpy.context.object.name = name
 
+def createcylidershell(cylinder_radius,height,z, name='Cylinder'):
+    bpy.ops.mesh.primitive_cylinder_add(end_fill_type='NOTHING', radius=cylinder_radius, depth=height,
+                                        enter_editmode=False, align='WORLD', location=(0, 0, z), scale=(1, 1, 1))
+    bpy.context.object.name = name
 # The Panel
 class ToolBoxPanel(bpy.types.Panel):
     bl_label = 'Gantry Design'
@@ -232,6 +236,7 @@ class GantryDesign(bpy.types.Operator):
         deleteall()
         PANEL_WIDTH = self.COLUMN_RADIUS * 2 + 20 * 0.001
         z = self.COLUMN_HEIGHT / 2 + self.BASEPLATE_THICKNESS
+        z1 = (self.COLUMN_HEIGHT-self.CORROSION_HEIGHT-0.1)/2 + self.BASEPLATE_THICKNESS + self.CORROSION_HEIGHT + 0.1
         createPanel(x=PANEL_WIDTH,
                     y=self.PANEL_LENGTH,
                     z=self.PANEL_DEPTH,
@@ -258,10 +263,15 @@ class GantryDesign(bpy.types.Operator):
         delete_object('Plane')
         delete_object('column')
 
+        # I prefer to create the upper part as a shell so then I can use prepomax to create an nicely distributed mesh
+        createcylidershell(self.COLUMN_RADIUS,self.COLUMN_HEIGHT-self.CORROSION_HEIGHT-0.1,z1,name='UpperColumn')
+
+        # No controversial theory here...Point
+
         
-
-        createColumn(self.COLUMN_RADIUS, self.COLUMN_HEIGHT-self.CORROSION_HEIGHT-0.1,self.COLUMN_RADIUS,(self.COLUMN_HEIGHT-self.CORROSION_HEIGHT-0.1)/2 + self.BASEPLATE_THICKNESS + self.CORROSION_HEIGHT + 0.1,name='UpperColumn')  
-
+        
+        
+    
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -310,4 +320,12 @@ def unregister():
 if __name__ == "__main__":
     register()
     
-    
+    Area = 0.6198
+    Weight = 300*9.81
+    Pressure = Weight/Area
+    Pressure = 0.000001*Pressure #Mpa
+    Pressure = 1000000*Pressure # Pa   or N/m2  = 1 Pa
+    print(Pressure)
+
+
+
